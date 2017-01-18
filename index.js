@@ -7,8 +7,9 @@ const Promise = require('bluebird');
 
 const optionDefinitions = [
   { name: 'database', alias: 'd', type: String },
-  { name: 'structure', alias: 'f', type: String },
-  { name: 'output', alias: 'o', type: String, defaultOption: 'output.json' }
+  { name: 'structure', alias: 's', type: String },
+  { name: 'output', alias: 'o', type: String, defaultOption: 'output.json' },
+  { name: 'extend', alias: 'e', type: Boolean, defaultOption: false }
 ];
 
 const options = commandLineArgs(optionDefinitions);
@@ -57,7 +58,8 @@ const isStructureValid = () =>
         reject();
       }
       try {
-        structure = JSON.parse(data);
+        structure = structure || { tables: [] };
+        structure.tables = structure.tables.concat(JSON.parse(data).tables);
         resolve();
       } catch (err) {
         console.log('Structure file has not a valid JSON structure.');
@@ -68,7 +70,7 @@ const isStructureValid = () =>
 
 const buildStructure = () =>
   new Promise((resolve, reject) => {
-    structure = { tables: [] };
+    structure = structure || { tables: [] };
 
     db.all(`select name from sqlite_master where type='table' and name not like 'sqlite_sequence';`, (err, tables) => {
       for (let i = 0, len = tables.length; i < len; ++i) {
@@ -77,6 +79,7 @@ const buildStructure = () =>
           query: `SELECT * from ${tables[i].name}`
         });
       }
+
       resolve();
     });
   });
@@ -121,18 +124,27 @@ const writeOutput = () =>
   });
 
 const init = () => {
-  if (options.structure) {
+  if (options.extend) {
     isDatabaseValid()
+      .then(buildStructure)
       .then(isStructureValid)
       .then(parse)
       .then(writeOutput)
       .catch(e => console.log(e));
   } else {
-    isDatabaseValid()
-      .then(buildStructure)
-      .then(parse)
-      .then(writeOutput)
-      .catch(e => console.log(e));
+    if (options.structure) {
+      isDatabaseValid()
+        .then(isStructureValid)
+        .then(parse)
+        .then(writeOutput)
+        .catch(e => console.log(e));
+    } else {
+      isDatabaseValid()
+        .then(buildStructure)
+        .then(parse)
+        .then(writeOutput)
+        .catch(e => console.log(e));
+    }
   }
 }
 
