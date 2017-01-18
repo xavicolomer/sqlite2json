@@ -43,20 +43,6 @@ The Structure file allows you to specify custom queries and therefore reduce con
 ```
 
 
-Example **schema** configuration connection attribute:
-
-```json
-"schema": {
-    "country": {
-        "table": "Countries"
-    },
-    "city": {
-        "table": "Cities",
-        "population": 5000 //1000 | 1500 | 5000
-    }
-},
-```
-
 ## Installation
 - Clone this project
 - npm install
