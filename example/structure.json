@@ -1,0 +1,12 @@
+{
+    "tables": [
+        {
+            "query": "SELECT * from colors where name like 'red';",
+            "key": "colors"
+        },
+        {
+            "query": "SELECT * from shapes;",
+            "key": "shapes"
+        }
+    ]
+}
